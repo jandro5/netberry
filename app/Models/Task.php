@@ -11,6 +11,14 @@ class Task extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $fillable = [
+        'description',
+    ];
+
+    static $rules = [
+		'description' => 'required',
+    ];
+
     public function categories()
     {
         return $this->belongsToMany(Category::class);
