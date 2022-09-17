@@ -1,10 +1,10 @@
-p align="center">
+<p align="center">
 Pre-requisitos:
 </p>
 -** composer **
 -** node **
 
-p align="center">
+<p align="center">
 Configurar el archivo .env
 </p>
 
