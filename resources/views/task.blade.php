@@ -28,7 +28,7 @@
             @endforeach
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary mb-3" onclick="add_task()">@lang('Add')</button>
+                <button class="btn btn-primary mb-3" onclick="add_task('{{ route('task.store') }}')">@lang('Add')</button>
             </div>
         </form>
         
@@ -41,6 +41,36 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Otra forma de hacerlo -->
+                @php
+                $aux = 0;
+                $i = 0;
+                @endphp
+                @foreach ($tasks as $t)
+                    @if($t->id != $aux && $i > 0)
+                        </td>
+                        <td><a class="btn btn-danger" onclick="delete_task({{ $aux }}, '{{route('task.destroy')}}', '{{ csrf_token() }}')"><i class="fa-solid fa-trash-can"></i></a></td>
+                        </tr>
+                    @endif
+                    @if($t->id != $aux)
+                    <tr id="task-{{ $t->id }}">
+                        <td>{{ $t->description }}</td>
+                        <td>
+                    @endif
+                        
+                    <span class="badge bg-secondary">{{ $t->category }}</span>
+
+                    @php
+                    $aux = $t->id;
+                    $i++;
+                    @endphp
+                @endforeach
+                </td>
+                <td><a class="btn btn-danger" onclick="delete_task({{ $aux }}, '{{route('task.destroy')}}', '{{ csrf_token() }}')"><i class="fa-solid fa-trash-can"></i></a></td>
+                </tr>
+
+                {{-- 
+                <!-- By objects and subobjects -->
                 @foreach ($tasks as $t)
                     <tr id="task-{{ $t->id }}">
                         <td>{{ $t->description }}</td>
@@ -51,95 +81,12 @@
                         </td>
                         <td><a class="btn btn-danger" onclick="delete_task({{ $t->id }})"><i class="fa-solid fa-trash-can"></i></a></td>
                     </tr>
-                @endforeach
+                @endforeach 
+                --}}
             </tbody>
         </table>
 
     </div>
-
-    <script>
-        function add_task(){
-            event.preventDefault();
-            var form = $("#form-task");
-            $.ajax({
-                type: "POST",
-                url: "{{ route('task.store') }}",
-                data: form.serialize(), // serializes the form's elements.
-                success: function(data) {
-                    let markup = '<tr id="task-'+ data.id +'"><td>' + $('#description').val() + '</td>';
-                    let categories = $('input[name="categories[]"]:checked');
-                    markup += '<td>';
-                    categories.each(function() {
-                        markup += '<span class="badge bg-secondary">'+ this.getAttribute('data-name') +'</span>\n';
-                    });
-                    markup += '</td>';
-                    markup += '<td><a class="btn btn-danger" onclick="delete_task('+ data.id +')"><i class="fa-solid fa-trash-can"></i></a></td>';
-                    markup += '</tr>';
-                    
-                    $("table tbody").append(markup);
-                    form.trigger("reset");
-
-                    Swal.fire({
-                        title: '@lang("Task added!")',
-                        icon: 'success',
-                        showConfirmButton: false,
-                        timer: 1000
-                    });
-                },
-                error: function(data) {
-                    Swal.fire(
-                        'Error!',
-                        data.responseJSON.message,
-                        'warning'
-                    );
-                },
-                    
-            });
-        }
-
-        function delete_task(id) {
-            event.preventDefault();
-            console.log(this);
-            Swal.fire({
-                title: '@lang("Are you sure?")',
-                text: '@lang("You will not be able to revert this!")',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                cancelButtonText: '@lang("Cancel")',
-                confirmButtonText: '@lang("Yes, delete it!")'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    let data = {
-                        "_token": "{{ csrf_token() }}",
-                        "id": id
-                    }
-                    $.ajax({
-                        type: "POST",
-                        url: "/task/destroy",
-                        data: data, // serializes the form's elements.
-                        success: function(data) {
-                            $("#task-"+ id).remove();
-                            Swal.fire({
-                                title: '@lang("Deleted")!',
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1000
-                            });
-                        },
-                        error: function(data) {
-                            Swal.fire(
-                                '@lang("Not Deleted")',
-                                '',
-                                'error'
-                            );
-                        },
-                    });
-                }
-            });
-        }
-    </script>
         
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
